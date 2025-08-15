@@ -9,12 +9,30 @@ cd /home/ec2-user/streamlit-app
 pkill -f streamlit || true
 
 # Wait a moment
-sleep 2
+sleep 3
+
+# Check if app.py exists
+if [ ! -f "app.py" ]; then
+    echo "ERROR: app.py not found in $(pwd)" >> /var/log/codedeploy-install.log
+    ls -la >> /var/log/codedeploy-install.log
+    exit 1
+fi
+
+# Make sure streamlit is installed
+python3 -m pip install streamlit==1.28.1 >> /var/log/codedeploy-install.log 2>&1
 
 # Start the Streamlit application in the background
+echo "Executing: nohup python3 -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0" >> /var/log/codedeploy-install.log
 nohup python3 -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0 > /home/ec2-user/streamlit.log 2>&1 &
 
-echo "Streamlit server start command executed at $(date)" >> /var/log/codedeploy-install.log
+# Wait and check if it started
+sleep 5
+if pgrep -f streamlit > /dev/null; then
+    echo "Streamlit server started successfully at $(date)" >> /var/log/codedeploy-install.log
+else
+    echo "ERROR: Streamlit server failed to start at $(date)" >> /var/log/codedeploy-install.log
+    echo "Streamlit log contents:" >> /var/log/codedeploy-install.log
+    cat /home/ec2-user/streamlit.log >> /var/log/codedeploy-install.log
+fi
 
-# Exit successfully (don't wait to check if it's running)
 exit 0
