@@ -14,9 +14,9 @@ yum update -y >> /var/log/codedeploy-install.log 2>&1
 echo "Installing Python 3 and pip..." >> /var/log/codedeploy-install.log
 yum install -y python3 python3-pip >> /var/log/codedeploy-install.log 2>&1
 
-# Install streamlit directly (don't rely on requirements.txt being there yet)
-echo "Installing streamlit..." >> /var/log/codedeploy-install.log
-python3 -m pip install streamlit==1.28.1 >> /var/log/codedeploy-install.log 2>&1
+# Install streamlit using --user flag to avoid system package conflicts
+echo "Installing streamlit with --user flag..." >> /var/log/codedeploy-install.log
+python3 -m pip install --user streamlit==1.28.1 >> /var/log/codedeploy-install.log 2>&1
 
 echo "install_dependencies.sh completed at $(date)" >> /var/log/codedeploy-install.log
 

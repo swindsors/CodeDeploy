@@ -18,8 +18,8 @@ if [ ! -f "app.py" ]; then
     exit 1
 fi
 
-# Make sure streamlit is installed
-python3 -m pip install streamlit==1.28.1 >> /var/log/codedeploy-install.log 2>&1
+# Make sure streamlit is installed (using --user flag)
+python3 -m pip install --user streamlit==1.28.1 >> /var/log/codedeploy-install.log 2>&1
 
 # Start the Streamlit application in the background
 echo "Executing: nohup python3 -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0" >> /var/log/codedeploy-install.log
