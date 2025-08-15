@@ -36,7 +36,7 @@ git init
 git add .
 git commit -m "Initial commit: Streamlit app with CodeDeploy setup"
 git branch -M main
-git remote add origin https://github.com/swindsors/CodeDeploy.git
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
 git push -u origin main
 ```
 
@@ -61,10 +61,19 @@ git push -u origin main
 
 #### C. CodePipeline Service Role
 
+**Option 1: Let CodePipeline create the role automatically (Recommended)**
+- When creating the CodePipeline in step 9, choose "New service role" and let AWS create it automatically with the necessary permissions.
+
+**Option 2: Create the role manually**
 1. Go to IAM Console → Roles → Create Role
-2. Select "AWS Service" → "CodePipeline"
-3. Attach policy: `AWSCodePipelineFullAccess`
-4. Add inline policy for S3 and CodeDeploy access:
+2. Select "AWS Service" → Find and select "CodePipeline" from the list
+3. AWS will automatically attach the `AWSCodePipelineServiceRole` policy
+4. Name: `CodePipelineServiceRole`
+5. After creation, you may need to add additional permissions for S3 and CodeDeploy by attaching these policies:
+   - `AWSCodeDeployRole` (for CodeDeploy integration)
+   - Custom inline policy for S3 access to your artifacts bucket
+
+**Note**: If you encounter permission issues, you can add this inline policy to the CodePipeline service role:
 
 ```json
 {
@@ -76,9 +85,13 @@ git push -u origin main
                 "s3:GetBucketVersioning",
                 "s3:GetObject",
                 "s3:GetObjectVersion",
-                "s3:PutObject"
+                "s3:PutObject",
+                "s3:ListBucket"
             ],
-            "Resource": "*"
+            "Resource": [
+                "arn:aws:s3:::your-codepipeline-artifacts-bucket",
+                "arn:aws:s3:::your-codepipeline-artifacts-bucket/*"
+            ]
         },
         {
             "Effect": "Allow",
@@ -95,8 +108,6 @@ git push -u origin main
     ]
 }
 ```
-
-5. Name: `CodePipelineServiceRole`
 
 ### 4. Launch EC2 Instance
 
@@ -138,32 +149,89 @@ git push -u origin main
 
 ### 8. Set up GitHub Connection (for CodePipeline)
 
+**Method 1: Create Connection During Pipeline Setup (Recommended)**
+1. When creating your pipeline in step 9, you can create the GitHub connection directly
+2. In the source stage, select "GitHub (Version 2)"
+3. Click "Connect to GitHub" 
+4. This will open the GitHub authorization flow (see steps below)
+
+**Method 2: Create Connection Beforehand**
 1. Go to CodePipeline Console → Settings → Connections
-2. Create Connection
-3. Provider: GitHub
+2. Click "Create connection"
+3. Provider: Select "GitHub"
 4. Connection name: `github-connection`
-5. Follow the authorization flow to connect your GitHub account
+5. Click "Connect to GitHub"
+
+**GitHub Authorization Process (for both methods):**
+
+1. **Install AWS Connector App:**
+   - You'll be redirected to GitHub
+   - Click "Install a new app" or "Configure" if you've used it before
+   - Select your GitHub account or organization
+   - Choose repositories:
+     - **"All repositories"** (easier, gives access to all your repos)
+     - **"Only select repositories"** (more secure, select just your Streamlit repo)
+   - Click "Install" or "Save"
+
+2. **Complete Connection:**
+   - You'll be redirected back to AWS
+   - Click "Connect" to finalize the connection
+   - The connection status should show as "Available"
+
+**Troubleshooting GitHub Authorization:**
+
+- **"Pending" connection status:** 
+  - Go back to GitHub → Settings → Applications → Installed GitHub Apps
+  - Find "AWS Connector for GitHub" and ensure it's properly configured
+  
+- **Permission denied errors:**
+  - Make sure you have admin access to the GitHub repository
+  - Check that the AWS Connector app has access to your specific repository
+
+- **Connection not found during pipeline creation:**
+  - Refresh the CodePipeline page
+  - The connection might take a few minutes to appear in the dropdown
+
+**Important Notes:**
+- You only need to do this authorization once per AWS account
+- The same connection can be used for multiple pipelines
+- GitHub will send you email notifications about the AWS Connector app installation
 
 ### 9. Create CodePipeline
 
 1. Go to CodePipeline Console → Create Pipeline
-2. Pipeline name: `streamlit-deployment-pipeline`
-3. Service role: Select `CodePipelineServiceRole`
-4. Artifact store: Select your S3 bucket
+2. **Pipeline settings:**
+   - Pipeline name: `streamlit-deployment-pipeline`
+   - Service role: Choose "New service role" (recommended) or select existing `CodePipelineServiceRole`
+   - Artifact store: Choose "Default location" or select your custom S3 bucket
+   - Click "Next"
 
-#### Source Stage:
-- Source provider: GitHub (Version 2)
-- Connection: Select your GitHub connection
-- Repository: Your repository name
-- Branch: `main`
-- Output artifacts: `SourceOutput`
+3. **Add source stage:**
+   - Source provider: **GitHub (Version 2)** or **"GitHub via app id"** (same thing, different display names)
+   - Connection: Select your GitHub connection (created in step 8)
+   - Repository name: Your repository name (e.g., `YOUR_USERNAME/YOUR_REPO_NAME`)
+   - Branch name: `main`
+   - Change detection options: Leave "Start the pipeline on source code change" checked
+   - Output artifacts: `SourceOutput` (default name)
+   - Click "Next"
 
-#### Deploy Stage:
-- Deploy provider: AWS CodeDeploy
-- Region: Your region
-- Application name: `streamlit-hello-world`
-- Deployment group: `streamlit-deployment-group`
-- Input artifacts: `SourceOutput`
+4. **Add build stage:**
+   - **Skip this step** - Click "Skip build stage" since we don't need to build/compile anything for this Python app
+   - Confirm by clicking "Skip"
+
+5. **Add deploy stage:**
+   - Deploy provider: **AWS CodeDeploy**
+   - Region: Your AWS region (e.g., `us-east-1`)
+   - Application name: `streamlit-hello-world` (created in step 5)
+   - Deployment group: `streamlit-deployment-group` (created in step 6)
+   - Input artifacts: `SourceOutput`
+   - Click "Next"
+
+6. **Review and create:**
+   - Review all settings
+   - Click "Create pipeline"
+
+**Note:** We're not using ECR (Elastic Container Registry) because this setup deploys Python code directly to EC2, not Docker containers. ECR would be used if you were containerizing your Streamlit app with Docker and deploying to ECS or EKS.
 
 ### 10. Test the Deployment
 
