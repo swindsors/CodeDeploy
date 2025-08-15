@@ -135,7 +135,7 @@ git push -u origin main
 2. Deployment group name: `streamlit-deployment-group`
 3. Service role: Select `CodeDeployServiceRole`
 4. Deployment type: `In-place`
-5. Environment configuration: **Amazon EC2 instances** (NOT "On-premises instances")
+5. Environment configuration: `Amazon EC2 instances`
 6. **Tag group configuration (CRITICAL):**
    - Click "Add tag group"
    - **Key:** `Name` (or any tag key you used on your EC2 instance)
@@ -143,12 +143,6 @@ git push -u origin main
    - **Example:** If your EC2 instance has tag `Name = streamlit-server`, use:
      - Key: `Name`
      - Value: `streamlit-server`
-   
-   **To find your EC2 instance tags:**
-   - Go to EC2 Console → Instances
-   - Select your instance
-   - Look at the "Tags" tab
-   - Use the exact Key and Value (case-sensitive)
 7. Deployment configuration: `CodeDeployDefault.AllAtOnce`
 8. Load balancer: Uncheck "Enable load balancing"
 
@@ -263,22 +257,82 @@ git push
 
 ### Common Issues:
 
-1. **CodeDeploy agent not running**: SSH into EC2 and run:
+1. **"No instances were found for your deployment group" Error:**
+   - **Check EC2 instance tags:** Go to EC2 Console → Select your instance → Tags tab
+   - **Update deployment group:** Go to CodeDeploy → Edit deployment group → Ensure tag Key/Value exactly match your EC2 instance tags (case-sensitive)
+   - **Use "Amazon EC2 instances" NOT "On-premises instances"**
+
+2. **"Too many individual instances failed deployment" Error:**
+   
+   This means CodeDeploy found your instance but the deployment scripts failed. Here's how to debug:
+   
+   **Step 1: Check CodeDeploy logs on EC2 instance**
+   ```bash
+   # SSH into your EC2 instance
+   ssh -i your-key.pem ec2-user@YOUR_EC2_PUBLIC_IP
+   
+   # Check CodeDeploy agent logs
+   sudo tail -f /var/log/aws/codedeploy-agent/codedeploy-agent.log
+   
+   # Check deployment logs (replace deployment-id with actual ID)
+   sudo ls /opt/codedeploy-agent/deployment-root/
+   sudo tail -f /opt/codedeploy-agent/deployment-root/[deployment-id]/logs/scripts.log
+   ```
+   
+   **Step 2: Verify CodeDeploy agent is running**
+   ```bash
+   sudo service codedeploy-agent status
+   # If not running:
+   sudo service codedeploy-agent start
+   sudo service codedeploy-agent restart
+   ```
+   
+   **Step 3: Check script permissions**
+   ```bash
+   # Make sure scripts are executable
+   sudo chmod +x /home/ec2-user/streamlit-app/scripts/*.sh
+   ```
+   
+   **Step 4: Test scripts manually**
+   ```bash
+   # Test dependency installation
+   sudo /home/ec2-user/streamlit-app/scripts/install_dependencies.sh
+   
+   # Test server start
+   /home/ec2-user/streamlit-app/scripts/start_server.sh
+   ```
+   
+   **Step 5: Check IAM role**
+   - EC2 Console → Select instance → Actions → Security → Modify IAM role
+   - Ensure `EC2CodeDeployRole` is attached
+
+3. **CodeDeploy agent not running**: SSH into EC2 and run:
 ```bash
 sudo service codedeploy-agent status
 sudo service codedeploy-agent start
 ```
 
-2. **Permission issues**: Ensure IAM roles have correct policies attached
+4. **Permission issues**: Ensure IAM roles have correct policies attached
 
-3. **Security group**: Make sure port 8501 is open in your EC2 security group
+5. **Security group**: Make sure port 8501 is open in your EC2 security group
 
-4. **Streamlit not starting**: Check logs:
+6. **Streamlit not starting**: Check logs:
 ```bash
 tail -f /home/ec2-user/streamlit.log
 ```
 
-5. **CodeDeploy deployment fails**: Check deployment logs in CodeDeploy Console
+7. **Script execution fails**: Common fixes:
+```bash
+# Fix line endings (if editing on Windows)
+sudo dos2unix /home/ec2-user/streamlit-app/scripts/*.sh
+
+# Fix ownership
+sudo chown -R ec2-user:ec2-user /home/ec2-user/streamlit-app
+
+# Install missing dependencies manually
+sudo yum update -y
+sudo yum install -y python3 python3-pip
+```
 
 ### Useful Commands:
 
