@@ -20,15 +20,34 @@ This guide will walk you through deploying a Streamlit app to EC2 using AWS Code
 ### 1.2 Push Your Local Code
 ```bash
 # In your local project directory (where all the files are)
+
+# If this is a new directory:
 git init
+
+# If you already have git initialized, check your current remote:
+git remote -v
+
+# If you need to change the remote URL (replace with your new repo):
+git remote set-url origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+
+# If you need to add a remote (only if none exists):
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+
+# Add and commit your files:
 git add .
 git commit -m "Initial commit: Streamlit app with CodeDeploy setup"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
 git push -u origin main
 ```
 
 **Replace `YOUR_USERNAME` and `YOUR_REPO_NAME` with your actual GitHub username and repository name.**
+
+**If you get "remote origin already exists" error:**
+```bash
+# Use this instead:
+git remote set-url origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+git push -u origin main
+```
 
 ## Step 2: Create IAM Roles (3 roles needed)
 
