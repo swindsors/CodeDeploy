@@ -274,6 +274,9 @@ git push
    # Check CodeDeploy agent logs
    sudo tail -f /var/log/aws/codedeploy-agent/codedeploy-agent.log
    
+   # Check our custom install log (NEW - very helpful for debugging)
+   sudo tail -f /var/log/codedeploy-install.log
+   
    # Check deployment logs (replace deployment-id with actual ID)
    sudo ls /opt/codedeploy-agent/deployment-root/
    sudo tail -f /opt/codedeploy-agent/deployment-root/[deployment-id]/logs/scripts.log
