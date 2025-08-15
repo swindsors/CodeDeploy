@@ -135,10 +135,24 @@ git push -u origin main
 2. Deployment group name: `streamlit-deployment-group`
 3. Service role: Select `CodeDeployServiceRole`
 4. Deployment type: `In-place`
-5. Environment configuration: `Amazon EC2 instances`
-6. Tag group: Add tags that match your EC2 instance (e.g., Name: your-instance-name)
+5. Environment configuration: **Amazon EC2 instances** (NOT "On-premises instances")
+6. **Tag group configuration (CRITICAL):**
+   - Click "Add tag group"
+   - **Key:** `Name` (or any tag key you used on your EC2 instance)
+   - **Value:** The exact value of the tag on your EC2 instance
+   - **Example:** If your EC2 instance has tag `Name = streamlit-server`, use:
+     - Key: `Name`
+     - Value: `streamlit-server`
+   
+   **To find your EC2 instance tags:**
+   - Go to EC2 Console → Instances
+   - Select your instance
+   - Look at the "Tags" tab
+   - Use the exact Key and Value (case-sensitive)
 7. Deployment configuration: `CodeDeployDefault.AllAtOnce`
 8. Load balancer: Uncheck "Enable load balancing"
+
+**Important:** The tags in the deployment group must EXACTLY match the tags on your EC2 instance (case-sensitive).
 
 ### 7. Create S3 Bucket for Artifacts
 
