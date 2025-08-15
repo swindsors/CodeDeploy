@@ -182,45 +182,6 @@ We'll create this automatically when setting up CodePipeline in Step 6, but we'l
 
 The pipeline will start automatically and may fail the first time - this is normal as we're still setting up.
 
-## Step 6.6: Fix CodePipeline Service Role Permissions (IMPORTANT)
-
-After creating the pipeline, you need to add CodeDeploy permissions to the automatically created service role:
-
-1. Go to **IAM Console** → **Roles**
-2. Search for a role named like `AWSCodePipelineServiceRole-us-east-1-streamlit-` (the exact name will vary)
-3. Click on the role
-4. Click **Add permissions** → **Attach policies**
-5. Search for and attach: `AWSCodeDeployRole`
-6. Click **Add permissions**
-
-**Alternative: Add inline policy**
-If you can't find the `AWSCodeDeployRole` policy, create an inline policy:
-1. In the role, click **Add permissions** → **Create inline policy**
-2. Click **JSON** tab
-3. Paste this policy:
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "codedeploy:CreateDeployment",
-                "codedeploy:GetApplication",
-                "codedeploy:GetApplicationRevision",
-                "codedeploy:GetDeployment",
-                "codedeploy:GetDeploymentConfig",
-                "codedeploy:RegisterApplicationRevision"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-```
-4. Click **Next**
-5. Policy name: `CodeDeployPermissions`
-6. Click **Create policy**
-
 ## Step 7: Verify Your Setup
 
 ### 7.1 Check EC2 Instance
