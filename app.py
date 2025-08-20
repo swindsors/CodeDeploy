@@ -4,7 +4,7 @@ def main():
     st.title("Hello World Streamlit App")
     st.write("Welcome to your first Streamlit app deployed on AWS!")
     
-    st.header("About this app- deployed 1aaa")
+    st.header("About this app- deployed 1B")
     st.write("This is a simple hello world application built with Streamlit and deployed using AWS CodePipeline and CodeDeploy.")
     
     # Add some interactive elements

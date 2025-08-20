@@ -1,6 +1,9 @@
 #!/bin/bash
 
-echo "Starting streamlit server at $(date)" >> /var/log/codedeploy-install.log
+# Use a log file that ec2-user can write to
+LOG_FILE="/home/ec2-user/streamlit-startup.log"
+
+echo "Starting streamlit server at $(date)" >> $LOG_FILE
 
 # Navigate to the application directory
 cd /home/ec2-user/streamlit-app
@@ -13,26 +16,31 @@ sleep 3
 
 # Check if app.py exists
 if [ ! -f "app.py" ]; then
-    echo "ERROR: app.py not found in $(pwd)" >> /var/log/codedeploy-install.log
-    ls -la >> /var/log/codedeploy-install.log
+    echo "ERROR: app.py not found in $(pwd)" >> $LOG_FILE
+    ls -la >> $LOG_FILE
     exit 1
 fi
 
-# Make sure streamlit is installed (using --user flag)
-python3 -m pip install --user streamlit==1.28.1 >> /var/log/codedeploy-install.log 2>&1
+# Verify streamlit is available
+echo "Checking streamlit installation..." >> $LOG_FILE
+python3 -c "import streamlit; print('Streamlit version:', streamlit.__version__)" >> $LOG_FILE 2>&1
+
+# Set PATH to include user's local bin directory
+export PATH="/home/ec2-user/.local/bin:$PATH"
 
 # Start the Streamlit application in the background
-echo "Executing: nohup python3 -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0" >> /var/log/codedeploy-install.log
+echo "Executing: nohup python3 -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0" >> $LOG_FILE
 nohup python3 -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0 > /home/ec2-user/streamlit.log 2>&1 &
 
 # Wait and check if it started
 sleep 5
 if pgrep -f streamlit > /dev/null; then
-    echo "Streamlit server started successfully at $(date)" >> /var/log/codedeploy-install.log
+    echo "Streamlit server started successfully at $(date)" >> $LOG_FILE
+    echo "Server is running on port 8501"
 else
-    echo "ERROR: Streamlit server failed to start at $(date)" >> /var/log/codedeploy-install.log
-    echo "Streamlit log contents:" >> /var/log/codedeploy-install.log
-    cat /home/ec2-user/streamlit.log >> /var/log/codedeploy-install.log
+    echo "ERROR: Streamlit server failed to start at $(date)" >> $LOG_FILE
+    echo "Streamlit log contents:" >> $LOG_FILE
+    cat /home/ec2-user/streamlit.log >> $LOG_FILE
 fi
 
 exit 0

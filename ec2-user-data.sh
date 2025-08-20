@@ -52,9 +52,17 @@ chown -R ec2-user:ec2-user /home/ec2-user/streamlit-app
 touch /home/ec2-user/streamlit.log
 chown ec2-user:ec2-user /home/ec2-user/streamlit.log
 
-# Install streamlit to ensure it's available
-echo "Pre-installing Streamlit..."
-python3 -m pip install --user streamlit==1.28.1
+# Install streamlit system-wide to ensure it's available for all users
+echo "Pre-installing Streamlit system-wide..."
+python3 -m pip install streamlit==1.28.1
+
+# Also install for ec2-user specifically
+echo "Installing Streamlit for ec2-user..."
+sudo -u ec2-user python3 -m pip install --user streamlit==1.28.1
+
+# Add ec2-user's local bin to PATH in .bashrc
+echo 'export PATH="/home/ec2-user/.local/bin:$PATH"' >> /home/ec2-user/.bashrc
+chown ec2-user:ec2-user /home/ec2-user/.bashrc
 
 echo "EC2 instance setup complete for CodeDeploy and Streamlit at $(date)"
 echo "Python version: $(python3 --version)"
