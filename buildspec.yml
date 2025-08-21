@@ -23,28 +23,28 @@ phases:
   build:
     commands:
       - echo "Running tests..."
-      - echo "========================================="
+      - echo "========================================"
       - echo "Starting Calculator Test Suite"
-      - echo "========================================="
+      - echo "========================================"
       - python -m pytest test_calculator.py -v --tb=short
-      - echo "========================================="
-      - echo "All tests passed! ✅"
+      - echo "========================================"
+      - echo "All tests passed!"
       - echo "Calculator functionality verified:"
-      - echo "  ✅ 2 + 2 = 4 (Basic arithmetic)"
-      - echo "  ✅ Division by zero handling"
-      - echo "  ✅ Scientific operations"
-      - echo "  ✅ Error handling"
-      - echo "========================================="
+      - echo "- 2 + 2 = 4 (Basic arithmetic)"
+      - echo "- Division by zero handling"
+      - echo "- Scientific operations"
+      - echo "- Error handling"
+      - echo "========================================"
       
   post_build:
     commands:
       - echo "Build completed successfully!"
       - echo "Application is ready for deployment."
       - echo "Test summary:"
-      - echo "  - Basic operations: PASSED"
-      - echo "  - Scientific operations: PASSED"
-      - echo "  - Error handling: PASSED"
-      - echo "  - Edge cases: PASSED"
+      - echo "- Basic operations PASSED"
+      - echo "- Scientific operations PASSED"
+      - echo "- Error handling PASSED"
+      - echo "- Edge cases PASSED"
 
 artifacts:
   files:
