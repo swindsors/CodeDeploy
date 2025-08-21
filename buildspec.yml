@@ -49,7 +49,7 @@ phases:
 artifacts:
   files:
     - '**/*'
-  name: calculator-app-$(date +%Y-%m-%d-%H-%M-%S)
+  name: calculator-app-build
   
 cache:
   paths:
