@@ -1,8 +1,9 @@
 import streamlit as st
 import math
+from calculator import calculate_basic, calculate_scientific, CalculatorError
 
 def main():
-    st.title("🧮 Simple Calculator1")
+    st.title("🧮 Simple Calculator2")
     st.write("A simple calculator built with Streamlit")
     
     # Create tabs for different calculator modes
@@ -29,23 +30,12 @@ def main():
         
         # Calculate button
         if st.button("Calculate", type="primary"):
-            try:
-                if operation == "+":
-                    result = num1 + num2
-                elif operation == "-":
-                    result = num1 - num2
-                elif operation == "×":
-                    result = num1 * num2
-                elif operation == "÷":
-                    if num2 == 0:
-                        st.error("Error: Division by zero is not allowed!")
-                        return
-                    result = num1 / num2
-                
+            success, result = calculate_basic(num1, operation, num2)
+            
+            if success:
                 st.success(f"Result: {num1} {operation} {num2} = {result}")
-                
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
+            else:
+                st.error(f"Error: {result}")
     
     with tab2:
         st.header("Scientific Operations")
@@ -62,50 +52,27 @@ def main():
             )
             
             if st.button("Calculate Scientific", type="primary"):
-                try:
-                    if sci_operation == "Square Root":
-                        if number < 0:
-                            st.error("Cannot calculate square root of negative number!")
-                        else:
-                            result = math.sqrt(number)
-                            st.success(f"√{number} = {result}")
-                    
-                    elif sci_operation == "Square":
-                        result = number ** 2
-                        st.success(f"{number}² = {result}")
-                    
-                    elif sci_operation == "Cube":
-                        result = number ** 3
-                        st.success(f"{number}³ = {result}")
-                    
-                    elif sci_operation == "Sine":
-                        result = math.sin(math.radians(number))
-                        st.success(f"sin({number}°) = {result}")
-                    
-                    elif sci_operation == "Cosine":
-                        result = math.cos(math.radians(number))
-                        st.success(f"cos({number}°) = {result}")
-                    
-                    elif sci_operation == "Tangent":
-                        result = math.tan(math.radians(number))
-                        st.success(f"tan({number}°) = {result}")
-                    
-                    elif sci_operation == "Natural Log":
-                        if number <= 0:
-                            st.error("Natural log is only defined for positive numbers!")
-                        else:
-                            result = math.log(number)
-                            st.success(f"ln({number}) = {result}")
-                    
-                    elif sci_operation == "Log Base 10":
-                        if number <= 0:
-                            st.error("Logarithm is only defined for positive numbers!")
-                        else:
-                            result = math.log10(number)
-                            st.success(f"log₁₀({number}) = {result}")
+                success, result = calculate_scientific(sci_operation, number)
                 
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
+                if success:
+                    if sci_operation == "Square Root":
+                        st.success(f"√{number} = {result}")
+                    elif sci_operation == "Square":
+                        st.success(f"{number}² = {result}")
+                    elif sci_operation == "Cube":
+                        st.success(f"{number}³ = {result}")
+                    elif sci_operation == "Sine":
+                        st.success(f"sin({number}°) = {result}")
+                    elif sci_operation == "Cosine":
+                        st.success(f"cos({number}°) = {result}")
+                    elif sci_operation == "Tangent":
+                        st.success(f"tan({number}°) = {result}")
+                    elif sci_operation == "Natural Log":
+                        st.success(f"ln({number}) = {result}")
+                    elif sci_operation == "Log Base 10":
+                        st.success(f"log₁₀({number}) = {result}")
+                else:
+                    st.error(f"Error: {result}")
         
         with col2:
             st.subheader("Power Operations")
@@ -113,11 +80,12 @@ def main():
             exponent = st.number_input("Exponent", value=2.0, format="%.2f")
             
             if st.button("Calculate Power"):
-                try:
-                    result = base ** exponent
+                success, result = calculate_scientific("Power", None, base, exponent)
+                
+                if success:
                     st.success(f"{base}^{exponent} = {result}")
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
+                else:
+                    st.error(f"Error: {result}")
     
     # History section
     st.markdown("---")
